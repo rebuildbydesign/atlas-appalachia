@@ -146,11 +146,29 @@
     panel.querySelector('#ap-close').addEventListener('click', function () { open(false); });
   }
 
+  // The county choropleth's GeoJSON source (added by scripts.js with a data
+  // URL) intermittently fails to tile on the initial load in this map's
+  // lazy-render mode, leaving the states blank until the user interacts.
+  // Force it: re-set the data from the file (browser-cached from scripts.js's
+  // own fetch, so this is cheap), which rebuilds tiles and paints reliably.
+  function paintChoropleth() {
+    fetch('data/Atlas_FEMA_V2.geojson')
+      .then(function (r) { return r.json(); })
+      .then(function (geo) {
+        var src = map.getSource('atlas-fema');
+        if (src) src.setData(geo);
+        applyFocus();
+        map.triggerRepaint();
+      })
+      .catch(function (e) { console.error('[appalachia] choropleth reload failed', e); });
+  }
+
   // ----- boot ---------------------------------------------------------------
   function boot() {
     applyFocus();
     frame();
     addBoundary();
+    paintChoropleth();
     // Dots + county labels are added by an async fetch in scripts.js; re-apply
     // the state filter a few times until they exist.
     var tries = 0;
