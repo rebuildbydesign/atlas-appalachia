@@ -33,6 +33,9 @@
     ['atlas-fema-layer', 'county-borders', 'county-labels', 'atlas-fema-dots-layer'].forEach(function (id) {
       if (map.getLayer(id)) { try { map.setFilter(id, countyFilter()); } catch (e) {} }
     });
+    // County names are noise at the region overview; only reveal them once the
+    // user zooms into a state/area. State + subregion labels carry the wide view.
+    if (map.getLayer('county-labels')) { try { map.setLayerZoomRange('county-labels', 7, 24); } catch (e) {} }
     ['svi-tracts-layer', 'svi-tracts-outline'].forEach(function (id) {
       if (map.getLayer(id)) {
         try { map.setFilter(id, ['in', ['slice', ['get', 'GEOID'], 0, 2], ['literal', STATE_FIPS]]); } catch (e) {}
@@ -181,10 +184,12 @@
   }
 
   // Keep the label/line overlays above the choropleth after async layers land.
+  // Order matters: later = on top = higher label collision priority. County
+  // names sit BELOW the state + subregion labels so the wide-view labels win.
   function restack() {
     ['app-state-lines', 'appalachia-boundary-casing', 'appalachia-boundary-line',
-     'app-subregion-lines-casing', 'app-subregion-lines-layer',
-     'app-subregion-labels-layer', 'app-state-labels-layer', 'county-labels'
+     'county-labels', 'app-subregion-lines-casing', 'app-subregion-lines-layer',
+     'app-subregion-labels-layer', 'app-state-labels-layer'
     ].forEach(function (id) { if (map.getLayer(id)) map.moveLayer(id); });
   }
 

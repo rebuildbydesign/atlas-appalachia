@@ -4,13 +4,13 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiajAwYnkiLCJhIjoiY2x1bHUzbXZnMGhuczJxcG83YXY4c
 // Appalachia build: open framed on the KY / WV / NC region. appalachia.js
 // refines this with a precise fitBounds on load; this just avoids a national
 // flash before that runs.
-const initialZoom = window.innerWidth < 768 ? 4.2 : 5.2;
+const initialZoom = window.innerWidth < 768 ? 3.8 : 4.8;
 
 // CLIP TO NORTH AMERICA ONLY
 const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/j00by/clvx7jcp006zv01ph3miketyz',
-    center: [-82.6, 37.6],
+    center: [-82.2, 37.6],
     zoom: initialZoom,
     maxBounds: [
         [-220.0, -20.0],  // Southwest coordinates (including US Territories)
