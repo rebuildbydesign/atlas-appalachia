@@ -129,11 +129,13 @@
         layout: {
           'text-field': ['concat', ['get', 'subregion'], '\nAppalachia'],
           'text-font': ['Apercu Pro Bold', 'Arial Unicode MS Bold'],
-          'text-size': ['interpolate', ['linear'], ['zoom'], 4, 11, 7, 16],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 4, 12, 7, 18],
           'text-transform': 'uppercase', 'text-letter-spacing': 0.06,
-          'text-line-height': 1.1, 'text-allow-overlap': false, 'text-padding': 6
+          'text-line-height': 1.1, 'text-padding': 6,
+          // The 5 subregions are the featured overlay — always draw them.
+          'text-allow-overlap': true, 'text-ignore-placement': true
         },
-        paint: { 'text-color': '#123540', 'text-halo-color': '#ffffff', 'text-halo-width': 2.4 }
+        paint: { 'text-color': '#123540', 'text-halo-color': '#ffffff', 'text-halo-width': 2.6 }
       });
     }
   }
@@ -189,7 +191,7 @@
   function restack() {
     ['app-state-lines', 'appalachia-boundary-casing', 'appalachia-boundary-line',
      'county-labels', 'app-subregion-lines-casing', 'app-subregion-lines-layer',
-     'app-subregion-labels-layer', 'app-state-labels-layer'
+     'app-state-labels-layer', 'app-subregion-labels-layer'
     ].forEach(function (id) { if (map.getLayer(id)) map.moveLayer(id); });
   }
 
@@ -208,12 +210,15 @@
         addStateLabels();
         paintChoropleth();
         restack();
-        // Dots + county labels are added by an async fetch in scripts.js;
-        // re-apply the filter + restack a few times until they exist.
+        // Dots + county labels are added by a slow async fetch in scripts.js
+        // (after the 5MB geojson downloads). Keep re-applying the filter,
+        // zoom range, and restack until county-labels exists AND its minzoom
+        // has been raised — then stop. Capped so it can't run forever.
         var tries = 0;
         var iv = setInterval(function () {
           applyFocus(); restack();
-          if (map.getLayer('county-labels') || ++tries > 12) clearInterval(iv);
+          var cl = map.getLayer('county-labels');
+          if ((cl && cl.minzoom >= 7) || ++tries > 40) clearInterval(iv);
         }, 350);
       })
       .catch(function (e) { console.error('[appalachia] geoid load failed', e); });
