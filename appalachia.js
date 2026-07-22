@@ -156,8 +156,20 @@
       .then(function (r) { return r.json(); })
       .then(function (geo) {
         var src = map.getSource('atlas-fema');
-        if (src) src.setData(geo);
+        if (!src) return;
+        src.setData(geo);
         applyFocus();
+        // setData tiles asynchronously on the worker; repaint once the new
+        // data has finished tiling so the fill actually draws (a repaint
+        // fired immediately would land before the tiles are ready).
+        var onData = function (e) {
+          if (e.sourceId === 'atlas-fema' && e.isSourceLoaded) {
+            applyFocus();
+            map.triggerRepaint();
+            map.off('sourcedata', onData);
+          }
+        };
+        map.on('sourcedata', onData);
         map.triggerRepaint();
       })
       .catch(function (e) { console.error('[appalachia] choropleth reload failed', e); });
