@@ -1,0 +1,89 @@
+{
+  "Kentucky": {
+    "full": {
+      "counties": 120,
+      "decl_median": 6.0,
+      "decl_max": 16.0,
+      "decl_5plus_counties": 86,
+      "fema_total": 639022807,
+      "population": 4502935,
+      "per_capita": 142,
+      "svi_median": 0.56,
+      "svi_vhigh_share": 20,
+      "saidi_median": 742.7,
+      "saidi_max": 1386.0,
+      "state_declaration_count": 23
+    },
+    "appalachia": {
+      "counties": 54,
+      "decl_median": 9.0,
+      "decl_max": 16.0,
+      "decl_5plus_counties": 47,
+      "fema_total": 431045554,
+      "population": 1165722,
+      "per_capita": 370,
+      "svi_median": 0.67,
+      "svi_vhigh_share": 30,
+      "saidi_median": 853.85,
+      "saidi_max": 1386.0
+    }
+  },
+  "West Virginia": {
+    "full": {
+      "counties": 55,
+      "decl_median": 5.0,
+      "decl_max": 12.0,
+      "decl_5plus_counties": 28,
+      "fema_total": 225705757,
+      "population": 1792967,
+      "per_capita": 126,
+      "svi_median": 0.43,
+      "svi_vhigh_share": 4,
+      "saidi_median": 689.5,
+      "saidi_max": 854.2,
+      "state_declaration_count": 23
+    },
+    "appalachia": {
+      "counties": 55,
+      "decl_median": 5.0,
+      "decl_max": 12.0,
+      "decl_5plus_counties": 28,
+      "fema_total": 225705757,
+      "population": 1792967,
+      "per_capita": 126,
+      "svi_median": 0.43,
+      "svi_vhigh_share": 4,
+      "saidi_median": 689.5,
+      "saidi_max": 854.2
+    }
+  },
+  "North Carolina": {
+    "full": {
+      "counties": 100,
+      "decl_median": 3.0,
+      "decl_max": 8.0,
+      "decl_5plus_counties": 32,
+      "fema_total": 1207752525,
+      "population": 10470214,
+      "per_capita": 115,
+      "svi_median": 0.71,
+      "svi_vhigh_share": 43,
+      "saidi_median": 242.0,
+      "saidi_max": 465.0,
+      "state_declaration_count": 17
+    },
+    "appalachia": {
+      "counties": 31,
+      "decl_median": 3.0,
+      "decl_max": 7.0,
+      "decl_5plus_counties": 4,
+      "fema_total": 140204613,
+      "population": 2028520,
+      "per_capita": 69,
+      "svi_median": 0.6,
+      "svi_vhigh_share": 23,
+      "saidi_median": 297.5,
+      "saidi_max": 465.0
+    }
+  }
+}
