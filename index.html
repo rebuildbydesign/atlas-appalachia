@@ -50,7 +50,7 @@
     <!-- ATLAS OF ACCOUNTABILITY LOGO — live HTML/CSS wordmark (replaces atlas-logo.png) -->
     <div class="css-atlas-title">
         <h1 class="atlas-word">Atlas of Accountability</h1>
-        <span class="atlas-sub">The Appalachian Region: FEMA disasters, recovery funding &amp; vulnerability across 423 counties in 13 states</span>
+        <span class="atlas-sub">The Appalachian Region &middot; 423 counties across 13 states</span>
     </div>
 
 
@@ -71,9 +71,15 @@
             <div class="legend-region-line"></div>
             <span><b>Appalachian Region</b><br><span class="legend-mode-name">ARC boundary, 423 counties</span></span>
         </div>
-        <div class="legend-item">
-            <div class="legend-subregion-line"></div>
-            <span><b>ARC Subregions</b><br><span class="legend-mode-name">Northern → Southern (5 bands)</span></span>
+        <div class="legend-item legend-item-block" id="subregion-legend">
+            <span><b>ARC Subregions</b></span>
+            <div class="legend-subregion-chips">
+                <span style="background:#2166ac"></span>Northern
+                <span style="background:#762a83"></span>N. Central
+                <span style="background:#1b7837"></span>Central
+                <span style="background:#e08214"></span>S. Central
+                <span style="background:#c51b8a"></span>Southern
+            </div>
         </div>
         <div class="legend-item">
             <div class="legend-state-line"></div>
@@ -106,6 +112,14 @@
                         <input type="radio" name="lens" value="svi">
                         <span>Social Vulnerability</span>
                     </label>
+                    <!-- SVI resolution toggle: county by default, census-tract on demand.
+                         Shown only while the SVI lens is active (scripts.js). -->
+                    <div class="control-suboptions" data-lens="svi" style="display:none;">
+                        <label class="control-suboption">
+                            <input type="checkbox" id="svi-tract-toggle">
+                            <span>Show census-tract detail</span>
+                        </label>
+                    </div>
                     <label class="control-option">
                         <input type="radio" name="lens" value="energy">
                         <span>Energy Reliability</span>
@@ -121,6 +135,15 @@
                             <span>Worst-case outage</span>
                         </label>
                     </div>
+                </div>
+
+                <!-- Map overlays (not lenses) -->
+                <div class="control-subgroup-title">Map</div>
+                <div class="control-options">
+                    <label class="control-option">
+                        <input type="checkbox" id="subregions-toggle" checked>
+                        <span>ARC subregions</span>
+                    </label>
                 </div>
             </div>
         </div>

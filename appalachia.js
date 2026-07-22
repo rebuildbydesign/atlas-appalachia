@@ -27,6 +27,18 @@
   var STATE_FIPS = ['01', '13', '21', '24', '28', '36', '37', '39', '42', '45', '47', '51', '54'];
   var APP_GEOIDS = [];   // 423 county GEOIDs, loaded from data/appalachia_geoids.json
 
+  // SVI resolution: county by default, census-tract on demand (scripts.js reads this).
+  window.SVI_TRACT_DETAIL = false;
+
+  // Per-subregion color, for both the boundary lines and the labels.
+  var SUBREGION_COLOR = ['match', ['get', 'subregion'],
+    'Northern', '#2166ac',
+    'North Central', '#762a83',
+    'Central', '#1b7837',
+    'South Central', '#e08214',
+    'Southern', '#c51b8a',
+    '#555555'];
+
   function countyFilter() { return ['in', ['get', 'GEOID'], ['literal', APP_GEOIDS]]; }
 
   function applyFocus() {
@@ -57,8 +69,8 @@
       id: 'app-mask-fill', type: 'fill', source: 'app-mask',
       paint: { 'fill-color': '#eeece7', 'fill-opacity': 0.74 }
     }, map.getLayer('atlas-fema-layer') ? 'atlas-fema-layer' : undefined);
-    // Hide the basemap's full-state labels; we place our own on the region.
-    if (map.getLayer('state-label')) { try { map.setLayoutProperty('state-label', 'visibility', 'none'); } catch (e) {} }
+    // Basemap state labels stay ON (they render above the mask) so states in
+    // AND around the region are labeled for navigation.
   }
 
   // ----- Clear state boundary lines -----------------------------------------
@@ -99,25 +111,27 @@
     }
   }
 
-  // ----- The 5 ARC subregions (division lines + labels) ---------------------
-  // Loads from files built from the ARC county->subregion crosswalk; no-ops
-  // gracefully if they aren't present yet.
+  // ----- The 5 ARC subregions (color-coded outlines + labels) ---------------
+  // Each subregion's boundary + label is drawn in its own color for legibility.
+  // Toggled as a group by the "ARC subregions" checkbox.
+  var SUBREGION_LAYERS = ['app-subregion-casing', 'app-subregion-line', 'app-subregion-labels-layer'];
+
   function addSubregions() {
-    if (!map.getSource('app-subregion-lines')) {
-      map.addSource('app-subregion-lines', { type: 'geojson', data: 'data/appalachia_subregion_lines.geojson' });
+    if (!map.getSource('app-subregions')) {
+      map.addSource('app-subregions', { type: 'geojson', data: 'data/appalachia_subregions.geojson' });
     }
-    if (!map.getLayer('app-subregion-lines-casing')) {
+    if (!map.getLayer('app-subregion-casing')) {
       map.addLayer({
-        id: 'app-subregion-lines-casing', type: 'line', source: 'app-subregion-lines',
+        id: 'app-subregion-casing', type: 'line', source: 'app-subregions',
         layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': '#ffffff', 'line-width': 3.6, 'line-opacity': 0.7 }
+        paint: { 'line-color': '#ffffff', 'line-width': 5, 'line-opacity': 0.9 }
       });
     }
-    if (!map.getLayer('app-subregion-lines-layer')) {
+    if (!map.getLayer('app-subregion-line')) {
       map.addLayer({
-        id: 'app-subregion-lines-layer', type: 'line', source: 'app-subregion-lines',
+        id: 'app-subregion-line', type: 'line', source: 'app-subregions',
         layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': '#1b4b5a', 'line-width': 1.8, 'line-dasharray': [3, 2] }
+        paint: { 'line-color': SUBREGION_COLOR, 'line-width': ['interpolate', ['linear'], ['zoom'], 4, 1.8, 7, 3.2] }
       });
     }
     if (!map.getSource('app-subregion-labels')) {
@@ -135,28 +149,32 @@
           // The 5 subregions are the featured overlay — always draw them.
           'text-allow-overlap': true, 'text-ignore-placement': true
         },
-        paint: { 'text-color': '#123540', 'text-halo-color': '#ffffff', 'text-halo-width': 2.6 }
+        paint: { 'text-color': SUBREGION_COLOR, 'text-halo-color': '#ffffff', 'text-halo-width': 2.8 }
       });
     }
   }
 
-  // ----- Per-state labels ----------------------------------------------------
-  function addStateLabels() {
-    if (!map.getSource('app-state-labels')) {
-      map.addSource('app-state-labels', { type: 'geojson', data: 'data/appalachia_state_labels.geojson' });
+  function setSubregionsVisible(on) {
+    SUBREGION_LAYERS.forEach(function (id) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
+    });
+  }
+
+  // ----- Control-panel wiring (subregion toggle + SVI county/tract toggle) ---
+  function wireControls() {
+    var subToggle = document.getElementById('subregions-toggle');
+    if (subToggle && !subToggle._wired) {
+      subToggle._wired = true;
+      setSubregionsVisible(subToggle.checked);
+      subToggle.addEventListener('change', function (e) { setSubregionsVisible(e.target.checked); });
     }
-    if (!map.getLayer('app-state-labels-layer')) {
-      map.addLayer({
-        id: 'app-state-labels-layer', type: 'symbol', source: 'app-state-labels',
-        minzoom: 4.4,
-        layout: {
-          'text-field': ['get', 'STATE_NAME'],
-          'text-font': ['Apercu Pro Bold', 'Arial Unicode MS Bold'],
-          'text-size': ['interpolate', ['linear'], ['zoom'], 5, 11, 8, 17],
-          'text-transform': 'uppercase', 'text-letter-spacing': 0.12,
-          'text-allow-overlap': false, 'text-padding': 4
-        },
-        paint: { 'text-color': '#2a2a2a', 'text-halo-color': '#ffffff', 'text-halo-width': 2.2 }
+    var sviToggle = document.getElementById('svi-tract-toggle');
+    if (sviToggle && !sviToggle._wired) {
+      sviToggle._wired = true;
+      sviToggle.addEventListener('change', function (e) {
+        window.SVI_TRACT_DETAIL = e.target.checked;
+        if (window.applyAtlasStyling) window.applyAtlasStyling();
+        applyFocus();  // re-apply the 13-state tract filter after the restyle
       });
     }
   }
@@ -190,8 +208,8 @@
   // names sit BELOW the state + subregion labels so the wide-view labels win.
   function restack() {
     ['app-state-lines', 'appalachia-boundary-casing', 'appalachia-boundary-line',
-     'county-labels', 'app-subregion-lines-casing', 'app-subregion-lines-layer',
-     'app-state-labels-layer', 'app-subregion-labels-layer'
+     'county-labels', 'app-subregion-casing', 'app-subregion-line',
+     'app-subregion-labels-layer'
     ].forEach(function (id) { if (map.getLayer(id)) map.moveLayer(id); });
   }
 
@@ -207,7 +225,7 @@
         addStateLines();
         addRegionOutline();
         addSubregions();
-        addStateLabels();
+        wireControls();
         paintChoropleth();
         restack();
         // Dots + county labels are added by a slow async fetch in scripts.js

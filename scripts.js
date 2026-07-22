@@ -993,7 +993,9 @@ map.on('load', function () {
         if (!spec) return;
 
         const isDots = spec.renderMode === 'dots';
-        const isTracts = activeLens === 'svi';  // SVI lens swaps to tract-level rendering
+        // SVI shows county-level by default; census-tract detail is opt-in via
+        // the "Show census-tract detail" toggle (window.SVI_TRACT_DETAIL).
+        const isTracts = activeLens === 'svi' && window.SVI_TRACT_DETAIL === true;
 
         if (isDots) {
             // The dots sub-mode paints the choropleth too — either a
@@ -1052,6 +1054,9 @@ map.on('load', function () {
         renderSviScope();
         refreshIndicatorsIfPopupOpen();
     }
+    // Expose so the Appalachia add-on can re-run styling when the SVI
+    // county/tract toggle changes.
+    window.applyAtlasStyling = applyActiveStyling;
 
     // Under the SVI lens the visible choropleth silently switches from a
     // county average (zoom < threshold) to census tracts (zoom ≥ threshold).
@@ -1062,7 +1067,7 @@ map.on('load', function () {
         const lineEl = document.getElementById('svi-scope-line');
         if (!lineEl) return;  // not the SVI legend
         const hintEl = document.getElementById('svi-scope-hint');
-        const isTractView = map.getZoom() >= SVI_TRACT_ZOOM_THRESHOLD;
+        const isTractView = window.SVI_TRACT_DETAIL === true;
         if (isTractView) {
             lineEl.innerHTML = '<span class="res-dot"></span>Viewing: Census tracts';
             if (hintEl) { hintEl.innerHTML = ''; hintEl.style.display = 'none'; }
@@ -1070,7 +1075,7 @@ map.on('load', function () {
             lineEl.innerHTML = '<span class="res-dot"></span>Viewing: County average';
             if (hintEl) {
                 hintEl.innerHTML = '<span class="svi-scope-hint-icon">&#128269;</span>'
-                    + 'Zoom in for census-tract detail';
+                    + 'Turn on “census-tract detail” for tract resolution';
                 hintEl.style.display = '';
             }
         }
