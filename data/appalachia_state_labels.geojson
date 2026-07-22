@@ -1,0 +1,15 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-86.54195319847356,33.849103552792464]},"properties":{"STATE_NAME":"Alabama","STATEFP":"01"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-84.61725054389575,34.532853980544274]},"properties":{"STATE_NAME":"Georgia","STATEFP":"13"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-83.57883407489413,37.461380595259065]},"properties":{"STATE_NAME":"Kentucky","STATEFP":"21"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-79.00221084403744,39.58935652719651]},"properties":{"STATE_NAME":"Maryland","STATEFP":"24"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.83516141804957,33.72614860887731]},"properties":{"STATE_NAME":"Mississippi","STATEFP":"28"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-76.00313347881247,42.39217776566859]},"properties":{"STATE_NAME":"New York","STATEFP":"36"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-82.0692738246192,35.64918147673515]},"properties":{"STATE_NAME":"North Carolina","STATEFP":"37"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-81.56485710315685,40.056933371746]},"properties":{"STATE_NAME":"Ohio","STATEFP":"39"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-78.72411406203565,40.86062679257995]},"properties":{"STATE_NAME":"Pennsylvania","STATEFP":"42"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-82.57282122331091,34.77794306105082]},"properties":{"STATE_NAME":"South Carolina","STATEFP":"45"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-84.83466198771454,35.797086271173654]},"properties":{"STATE_NAME":"Tennessee","STATEFP":"47"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-81.22071171954882,36.90371360406038]},"properties":{"STATE_NAME":"Virginia","STATEFP":"51"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-80.65625650842493,38.713403587488486]},"properties":{"STATE_NAME":"West Virginia","STATEFP":"54"}}
+]}

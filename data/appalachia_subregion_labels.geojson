@@ -1,0 +1,7 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-86.67280934618347,33.848843929199724]},"properties":{"subregion":"Southern"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-83.59577815544259,37.29564823849503]},"properties":{"subregion":"Central"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-78.89054267908868,40.97593906313053]},"properties":{"subregion":"Northern"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-82.66081596079911,35.8550309603657]},"properties":{"subregion":"South Central"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-81.04584022196077,38.87142759198547]},"properties":{"subregion":"North Central"}}
+]}

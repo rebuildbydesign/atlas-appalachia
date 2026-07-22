@@ -3,15 +3,19 @@
    Snapshot panel + toggle button for the 3-state slideshow build.
    ========================================================================= */
 
-/* Legend key for the ARC region outline (matches the map line style). */
-.legend-appalachia-line {
+/* Legend keys for the geography lines (match the map line styles). */
+.legend-region-line,
+.legend-subregion-line,
+.legend-state-line {
   width: 26px;
   height: 0;
-  border-top: 2.4px dashed #6d3410;
   flex: 0 0 auto;
   margin-right: 8px;
   align-self: center;
 }
+.legend-region-line { border-top: 3px solid #3d2b1f; }
+.legend-subregion-line { border-top: 2px dashed #1b4b5a; }
+.legend-state-line { border-top: 2px solid #3f3f3f; }
 
 #ap-toggle {
   position: absolute;
