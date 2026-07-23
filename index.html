@@ -63,17 +63,23 @@
 
     <!-- LEGEND — body content swaps based on the active data lens -->
     <div id="legend">
-        <div id="legend-body">
-            <!-- Populated dynamically by scripts.js (see lensConfig.legendHTML) -->
-        </div>
-        <!-- Geography keys (always visible) -->
-        <div class="legend-item">
-            <div class="legend-region-line"></div>
-            <span><b>Appalachian Region</b><br><span class="legend-mode-name">ARC boundary, 423 counties</span></span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-state-line"></div>
-            <span><b>State boundaries</b></span>
+        <button id="legend-toggle" type="button" aria-expanded="true" aria-label="Collapse legend">
+            <span class="legend-toggle-title">Legend</span>
+            <span class="legend-toggle-icon" aria-hidden="true">&minus;</span>
+        </button>
+        <div id="legend-collapsible">
+            <div id="legend-body">
+                <!-- Populated dynamically by scripts.js (see lensConfig.legendHTML) -->
+            </div>
+            <!-- Geography keys (always visible) -->
+            <div class="legend-item">
+                <div class="legend-region-line"></div>
+                <span><b>Appalachian Region</b><br><span class="legend-mode-name">ARC boundary, 423 counties</span></span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-state-line"></div>
+                <span><b>State boundaries</b></span>
+            </div>
         </div>
     </div>
 

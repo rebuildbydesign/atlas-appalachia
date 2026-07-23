@@ -57,7 +57,7 @@
   function countyFilter() { return ['in', ['get', 'GEOID'], ['literal', activeGeoids()]]; }
 
   function applyFocus() {
-    ['atlas-fema-layer', 'county-borders', 'county-labels', 'atlas-fema-dots-layer'].forEach(function (id) {
+    ['atlas-fema-layer', 'app-county-borders', 'county-labels', 'atlas-fema-dots-layer'].forEach(function (id) {
       if (map.getLayer(id)) { try { map.setFilter(id, countyFilter()); } catch (e) {} }
     });
     // County names are noise at the region overview; only reveal them once the
@@ -92,6 +92,30 @@
     }, before);
     // Basemap state labels stay ON (they render above the mask) so states in
     // AND around the region are labeled for navigation.
+  }
+
+  // ----- White county borders, from a REGION-ONLY source --------------------
+  // scripts.js adds a `county-borders` layer on the NATIONAL county source, so
+  // before its filter is applied it can draw county lines outside Appalachia.
+  // We draw our own from the 423-county file (can never render outside the
+  // region) and hide the national one.
+  function addCountyBorders() {
+    if (!map.getSource('app-counties')) {
+      map.addSource('app-counties', { type: 'geojson', data: 'data/appalachia_counties.geojson' });
+    }
+    if (!map.getLayer('app-county-borders')) {
+      map.addLayer({
+        id: 'app-county-borders', type: 'line', source: 'app-counties',
+        paint: {
+          'line-color': '#ffffff',
+          'line-width': ['interpolate', ['linear'], ['zoom'], 4, 0.4, 7, 0.8, 10, 1.2, 13, 1.8],
+          'line-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.55, 7, 0.8, 10, 0.95]
+        }
+      });
+    }
+    if (map.getLayer('county-borders')) {
+      try { map.setLayoutProperty('county-borders', 'visibility', 'none'); } catch (e) {}
+    }
   }
 
   // ----- Clear state boundary lines -----------------------------------------
@@ -321,7 +345,7 @@
   // Order matters: later = on top = higher label collision priority. County
   // names sit BELOW the state + subregion labels so the wide-view labels win.
   function restack() {
-    ['app-state-lines', 'appalachia-boundary-casing', 'appalachia-boundary-line',
+    ['app-county-borders', 'app-state-lines', 'appalachia-boundary-casing', 'appalachia-boundary-line',
      'county-labels', 'app-subregion-casing', 'app-subregion-line',
      'app-subregion-labels-layer'
     ].forEach(function (id) { if (map.getLayer(id)) map.moveLayer(id); });
@@ -341,6 +365,7 @@
         applyFocus();
         frame();
         addMask();
+        addCountyBorders();
         addStateLines();
         addRegionOutline();
         addSubregions();
@@ -361,6 +386,21 @@
       })
       .catch(function (e) { console.error('[appalachia] geoid load failed', e); });
   }
+
+  // Legend collapse/expand (pure DOM — works even before the map loads).
+  function wireLegendToggle() {
+    var lt = document.getElementById('legend-toggle');
+    if (!lt || lt._wired) return;
+    lt._wired = true;
+    lt.addEventListener('click', function () {
+      var lg = document.getElementById('legend');
+      var collapsed = lg.classList.toggle('legend-collapsed');
+      lt.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      var icon = lt.querySelector('.legend-toggle-icon');
+      if (icon) icon.textContent = collapsed ? '+' : '−';
+    });
+  }
+  wireLegendToggle();
 
   if (map.loaded()) boot(); else map.on('load', boot);
 })();

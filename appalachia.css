@@ -9,8 +9,30 @@
   box-shadow: 0 2px 14px rgba(0, 0, 0, 0.2) !important;
   border: 1px solid #e4e4e4;
   border-radius: 8px !important;
-  padding: 12px 14px !important;
+  padding: 10px 12px !important;
 }
+
+/* Collapsible legend header (mirrors the Data Layers collapse). */
+#legend-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Poppins', 'Arial', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #333;
+}
+.legend-toggle-icon { font-size: 15px; line-height: 1; color: #666; }
+#legend-collapsible { margin-top: 8px; }
+#legend.legend-collapsed #legend-collapsible { display: none; }
 
 /* Multi-select dropdowns for the States / Subregions selectors. Collapsible
    in-flow (the control panel has overflow:hidden, so a floating menu would be
