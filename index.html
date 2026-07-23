@@ -71,16 +71,6 @@
             <div class="legend-region-line"></div>
             <span><b>Appalachian Region</b><br><span class="legend-mode-name">ARC boundary, 423 counties</span></span>
         </div>
-        <div class="legend-item legend-item-block" id="subregion-legend">
-            <span><b>ARC Subregions</b></span>
-            <div class="legend-subregion-chips">
-                <span style="background:#2166ac"></span>Northern
-                <span style="background:#762a83"></span>N. Central
-                <span style="background:#1b7837"></span>Central
-                <span style="background:#e08214"></span>S. Central
-                <span style="background:#c51b8a"></span>Southern
-            </div>
-        </div>
         <div class="legend-item">
             <div class="legend-state-line"></div>
             <span><b>State boundaries</b></span>
@@ -135,6 +125,25 @@
                             <span>Worst-case outage</span>
                         </label>
                     </div>
+                </div>
+
+                <!-- State selector: show all, or solo one Appalachian state -->
+                <div class="control-subgroup-title">States</div>
+                <div class="control-options" id="state-select">
+                    <label class="control-option"><input type="radio" name="state" value="all" checked><span>All states</span></label>
+                    <label class="control-option"><input type="radio" name="state" value="Alabama"><span>Alabama</span></label>
+                    <label class="control-option"><input type="radio" name="state" value="Georgia"><span>Georgia</span></label>
+                    <label class="control-option"><input type="radio" name="state" value="Kentucky"><span>Kentucky</span></label>
+                    <label class="control-option"><input type="radio" name="state" value="Maryland"><span>Maryland</span></label>
+                    <label class="control-option"><input type="radio" name="state" value="Mississippi"><span>Mississippi</span></label>
+                    <label class="control-option"><input type="radio" name="state" value="New York"><span>New York</span></label>
+                    <label class="control-option"><input type="radio" name="state" value="North Carolina"><span>North Carolina</span></label>
+                    <label class="control-option"><input type="radio" name="state" value="Ohio"><span>Ohio</span></label>
+                    <label class="control-option"><input type="radio" name="state" value="Pennsylvania"><span>Pennsylvania</span></label>
+                    <label class="control-option"><input type="radio" name="state" value="South Carolina"><span>South Carolina</span></label>
+                    <label class="control-option"><input type="radio" name="state" value="Tennessee"><span>Tennessee</span></label>
+                    <label class="control-option"><input type="radio" name="state" value="Virginia"><span>Virginia</span></label>
+                    <label class="control-option"><input type="radio" name="state" value="West Virginia"><span>West Virginia</span></label>
                 </div>
 
                 <!-- Subregion selector: show all, or solo one ARC subregion -->
