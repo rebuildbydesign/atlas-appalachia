@@ -12,6 +12,14 @@
   padding: 12px 14px !important;
 }
 
+/* Small hint under the States / Subregions group titles. */
+.control-hint {
+  font-size: 10.5px;
+  color: #8a8a8a;
+  margin: 0 0 4px 2px;
+  font-style: italic;
+}
+
 /* Color dot for the subregion selector options. */
 .sr-dot {
   display: inline-block;

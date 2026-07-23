@@ -28,9 +28,10 @@
   var APP_GEOIDS = [];   // 423 county GEOIDs, loaded from data/appalachia_geoids.json
   var SUB_GEOIDS = {};   // {subregion: [geoids]}, loaded from data/appalachia_subregion_geoids.json
   var STATE_GEOIDS = {}; // {state name: [geoids]}, loaded from data/appalachia_state_geoids.json
-  // At most one of these is non-'all' at a time (selecting one resets the other).
-  var selectedSub = 'all';    // 'all' or one subregion name
-  var selectedState = 'all';  // 'all' or one state name
+  // Multi-select checkbox filters. Empty = no filter (show the whole region).
+  // The shown counties = union of the checked states' and subregions' counties.
+  var selectedStates = [];  // array of checked state names
+  var selectedSubs = [];    // array of checked subregion names
 
   // SVI resolution: county by default, census-tract on demand (scripts.js reads this).
   window.SVI_TRACT_DETAIL = false;
@@ -44,11 +45,14 @@
     'Southern', '#c51b8a',
     '#555555'];
 
-  // The GEOIDs currently shown: all 423, or just the selected state's / subregion's.
+  // The GEOIDs currently shown: the whole region if nothing is checked, else
+  // the union of every checked state's and subregion's counties.
   function activeGeoids() {
-    if (selectedState !== 'all' && STATE_GEOIDS[selectedState]) return STATE_GEOIDS[selectedState];
-    if (selectedSub !== 'all' && SUB_GEOIDS[selectedSub]) return SUB_GEOIDS[selectedSub];
-    return APP_GEOIDS;
+    if (!selectedStates.length && !selectedSubs.length) return APP_GEOIDS;
+    var set = Object.create(null);
+    selectedStates.forEach(function (s) { (STATE_GEOIDS[s] || []).forEach(function (g) { set[g] = 1; }); });
+    selectedSubs.forEach(function (s) { (SUB_GEOIDS[s] || []).forEach(function (g) { set[g] = 1; }); });
+    return Object.keys(set);
   }
   function countyFilter() { return ['in', ['get', 'GEOID'], ['literal', activeGeoids()]]; }
 
@@ -59,8 +63,9 @@
     // County names are noise at the region overview; only reveal them once the
     // user zooms into a state/area. State + subregion labels carry the wide view.
     if (map.getLayer('county-labels')) { try { map.setLayerZoomRange('county-labels', 7, 24); } catch (e) {} }
-    // SVI tracts: clip to the 13 states (all) or the selected subregion's counties.
-    var tractFilter = (selectedSub === 'all')
+    // SVI tracts: clip to the 13 states (no filter) or the shown counties.
+    var noFilter = !selectedStates.length && !selectedSubs.length;
+    var tractFilter = noFilter
       ? ['in', ['slice', ['get', 'GEOID'], 0, 2], ['literal', STATE_FIPS]]
       : ['in', ['slice', ['get', 'GEOID'], 0, 5], ['literal', activeGeoids()]];
     ['svi-tracts-layer', 'svi-tracts-outline'].forEach(function (id) {
@@ -168,91 +173,70 @@
     }
   }
 
-  // Grey wash over the non-selected subregions (subregion-solo) so only the
-  // chosen subregion reads in color. Hidden otherwise.
-  function addDim() {
-    if (map.getLayer('app-subregion-dim')) return;
-    if (!map.getSource('app-subregions')) {
-      map.addSource('app-subregions', { type: 'geojson', data: 'data/appalachia_subregions.geojson' });
-    }
+  // Grey wash over the region counties that are NOT in the current selection,
+  // so the checked states/subregions read in color and the rest fade back.
+  // Uses the county choropleth's own source; a filter that matches nothing
+  // (i.e. when nothing is checked) means no dimming.
+  function addNonselDim() {
+    if (map.getLayer('app-nonsel-dim')) return;
+    if (!map.getSource('atlas-fema')) return;  // added by scripts.js
     map.addLayer({
-      id: 'app-subregion-dim', type: 'fill', source: 'app-subregions',
-      layout: { visibility: 'none' },
-      paint: { 'fill-color': '#eeece7', 'fill-opacity': 0.72 }
-    }, map.getLayer('app-subregion-casing') ? 'app-subregion-casing' : undefined);
+      id: 'app-nonsel-dim', type: 'fill', source: 'atlas-fema',
+      filter: ['==', ['get', 'GEOID'], '__none__'],
+      paint: { 'fill-color': '#eeece7', 'fill-opacity': 0.78 }
+    });
   }
 
-  // Grey wash over the non-selected states (state-solo). Uses the per-state
-  // Appalachian-portion polygons (same source as the state boundary lines).
-  function addStateDim() {
-    if (map.getLayer('app-state-dim')) return;
-    if (!map.getSource('app-states')) {
-      map.addSource('app-states', { type: 'geojson', data: 'data/appalachia_states.geojson' });
-    }
-    map.addLayer({
-      id: 'app-state-dim', type: 'fill', source: 'app-states',
-      layout: { visibility: 'none' },
-      paint: { 'fill-color': '#eeece7', 'fill-opacity': 0.72 }
-    }, map.getLayer('app-subregion-casing') ? 'app-subregion-casing' : undefined);
-  }
-
-  // Recompute the whole view from the current (selectedState, selectedSub).
-  // Subregion-solo dims other subregions + shows the subregion overlay;
-  // state-solo dims other states + hides the subregion overlay entirely.
+  // Recompute the view from the checked states + subregions.
   function applySelection() {
-    var subSolo = selectedSub !== 'all';
-    var stateSolo = selectedState !== 'all';
-    var isAll = !subSolo && !stateSolo;
-    applyFocus();  // refilter choropleth / borders / county labels / tracts
+    var hasFilter = selectedStates.length > 0 || selectedSubs.length > 0;
+    applyFocus();  // choropleth / borders / county labels / tracts -> activeGeoids()
 
-    var srFilter = subSolo ? ['==', ['get', 'subregion'], selectedSub] : null;
-    var srVis = stateSolo ? 'none' : 'visible';   // hide subregion overlay in state mode
+    // Dim the region counties that are NOT shown (empty selection -> dim none).
+    if (map.getLayer('app-nonsel-dim')) {
+      var shown = activeGeoids();
+      var dimFilter = hasFilter
+        ? ['all',
+            ['in', ['get', 'GEOID'], ['literal', APP_GEOIDS]],
+            ['!', ['in', ['get', 'GEOID'], ['literal', shown]]]]
+        : ['==', ['get', 'GEOID'], '__none__'];
+      try { map.setFilter('app-nonsel-dim', dimFilter); } catch (e) {}
+    }
+
+    // Subregion overlay: show the checked subregions; if only states are
+    // checked, hide it (state-focused view); if nothing is checked, show all 5.
+    var srVis, srFilter;
+    if (selectedSubs.length) { srVis = 'visible'; srFilter = ['in', ['get', 'subregion'], ['literal', selectedSubs]]; }
+    else if (selectedStates.length) { srVis = 'none'; srFilter = null; }
+    else { srVis = 'visible'; srFilter = null; }
     ['app-subregion-casing', 'app-subregion-line', 'app-subregion-labels-layer'].forEach(function (id) {
       if (map.getLayer(id)) {
         try { map.setFilter(id, srFilter); } catch (e) {}
         map.setLayoutProperty(id, 'visibility', srVis);
       }
     });
-    if (map.getLayer('app-subregion-dim')) {
-      map.setLayoutProperty('app-subregion-dim', 'visibility', subSolo ? 'visible' : 'none');
-      try { map.setFilter('app-subregion-dim', subSolo ? ['!=', ['get', 'subregion'], selectedSub] : null); } catch (e) {}
-    }
-    if (map.getLayer('app-state-dim')) {
-      map.setLayoutProperty('app-state-dim', 'visibility', stateSolo ? 'visible' : 'none');
-      try { map.setFilter('app-state-dim', stateSolo ? ['!=', ['get', 'STATE_NAME'], selectedState] : null); } catch (e) {}
-    }
-    // The overall region outline only makes sense in the full view.
+
+    // The overall region outline only makes sense in the unfiltered full view.
     ['appalachia-boundary-casing', 'appalachia-boundary-line'].forEach(function (id) {
-      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', isAll ? 'visible' : 'none');
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', hasFilter ? 'none' : 'visible');
     });
     restack();
   }
 
-  function setRadioGroup(radios, value) {
-    radios.forEach(function (r) { r.checked = (r.value === value); });
+  function readChecked(selector) {
+    return Array.prototype.slice.call(document.querySelectorAll(selector))
+      .filter(function (c) { return c.checked; })
+      .map(function (c) { return c.value; });
   }
 
-  // ----- Control-panel wiring (state + subregion selectors, SVI toggle) ------
+  // ----- Control-panel wiring (state + subregion checkboxes, SVI toggle) -----
   function wireControls() {
-    var subRadios = document.querySelectorAll('input[name="subregion"]');
-    var stateRadios = document.querySelectorAll('input[name="state"]');
-    subRadios.forEach(function (r) {
-      if (r._wired) return;
-      r._wired = true;
-      r.addEventListener('change', function (e) {
-        if (!e.target.checked) return;
-        selectedSub = e.target.value;
-        if (selectedSub !== 'all') { selectedState = 'all'; setRadioGroup(stateRadios, 'all'); }
-        applySelection();
-      });
-    });
-    stateRadios.forEach(function (r) {
-      if (r._wired) return;
-      r._wired = true;
-      r.addEventListener('change', function (e) {
-        if (!e.target.checked) return;
-        selectedState = e.target.value;
-        if (selectedState !== 'all') { selectedSub = 'all'; setRadioGroup(subRadios, 'all'); }
+    document.querySelectorAll('.state-check, .subregion-check').forEach(function (c) {
+      if (c._wired) return;
+      c._wired = true;
+      c.addEventListener('change', function () {
+        selectedStates = readChecked('.state-check');
+        selectedSubs = readChecked('.subregion-check');
         applySelection();
       });
     });
@@ -318,8 +302,7 @@
         addStateLines();
         addRegionOutline();
         addSubregions();
-        addDim();
-        addStateDim();
+        addNonselDim();
         wireControls();
         paintChoropleth();
         restack();
