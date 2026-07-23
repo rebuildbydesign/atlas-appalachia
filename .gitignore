@@ -5,3 +5,6 @@
 # Kept locally for reference/regeneration; not deployed to GitHub Pages.
 data/NRI_CensusTract_WV.geojson
 data/NRI_Counties_WV.geojson
+
+# Local partner deliverable (Excel) - not deployed.
+workbook/
