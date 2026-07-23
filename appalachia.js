@@ -229,7 +229,18 @@
       .map(function (c) { return c.value; });
   }
 
-  // ----- Control-panel wiring (state + subregion checkboxes, SVI toggle) -----
+  // Summarize a dropdown's checked state in its trigger label.
+  function updateMsLabel(dd) {
+    var label = dd.querySelector('.ms-label');
+    if (!label) return;
+    var checked = Array.prototype.filter.call(
+      dd.querySelectorAll('input[type="checkbox"]'), function (c) { return c.checked; });
+    if (!checked.length) label.textContent = dd.getAttribute('data-all') || 'All';
+    else if (checked.length === 1) label.textContent = checked[0].value;
+    else label.textContent = checked.length + ' selected';
+  }
+
+  // ----- Control-panel wiring (dropdown selectors, checkboxes, SVI toggle) ---
   function wireControls() {
     document.querySelectorAll('.state-check, .subregion-check').forEach(function (c) {
       if (c._wired) return;
@@ -238,8 +249,39 @@
         selectedStates = readChecked('.state-check');
         selectedSubs = readChecked('.subregion-check');
         applySelection();
+        document.querySelectorAll('.ms-dropdown').forEach(updateMsLabel);
       });
     });
+
+    // Collapsible multi-select dropdowns.
+    document.querySelectorAll('.ms-dropdown').forEach(function (dd) {
+      var trigger = dd.querySelector('.ms-trigger');
+      var panel = dd.querySelector('.ms-panel');
+      if (trigger && !trigger._wired) {
+        trigger._wired = true;
+        trigger.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var open = dd.classList.toggle('ms-open');
+          trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+      }
+      if (panel && !panel._wired) {
+        panel._wired = true;
+        panel.addEventListener('click', function (e) { e.stopPropagation(); }); // stay open while checking
+      }
+      updateMsLabel(dd);
+    });
+    if (!document._msOutside) {
+      document._msOutside = true;
+      document.addEventListener('click', function () {
+        document.querySelectorAll('.ms-dropdown.ms-open').forEach(function (dd) {
+          dd.classList.remove('ms-open');
+          var t = dd.querySelector('.ms-trigger');
+          if (t) t.setAttribute('aria-expanded', 'false');
+        });
+      });
+    }
+
     var sviToggle = document.getElementById('svi-tract-toggle');
     if (sviToggle && !sviToggle._wired) {
       sviToggle._wired = true;

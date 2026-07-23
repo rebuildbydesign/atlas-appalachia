@@ -1891,9 +1891,11 @@ map.on('load', function () {
         type: 'line',
         source: 'atlas-fema',
         paint: {
-            'line-color': '#000000',
-            'line-width': ['interpolate', ['linear'], ['zoom'], 4, 0.3, 7, 0.7, 10, 1.1, 13, 1.7],
-            'line-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.4, 7, 0.7, 10, 0.9]
+            // White county strokes so counties read against the choropleth and
+            // stay distinct from the darker state boundary lines.
+            'line-color': '#ffffff',
+            'line-width': ['interpolate', ['linear'], ['zoom'], 4, 0.4, 7, 0.8, 10, 1.2, 13, 1.8],
+            'line-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.55, 7, 0.8, 10, 0.95]
         }
     }, 'state-label');
 

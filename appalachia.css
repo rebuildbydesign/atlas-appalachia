@@ -12,6 +12,41 @@
   padding: 12px 14px !important;
 }
 
+/* Multi-select dropdowns for the States / Subregions selectors. Collapsible
+   in-flow (the control panel has overflow:hidden, so a floating menu would be
+   clipped) — the panel expands inside the control panel and scrolls if long. */
+.ms-dropdown { margin: 0 0 6px; }
+.ms-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #fff;
+  border: 1px solid #cfcfcf;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  color: #222;
+  text-align: left;
+}
+.ms-trigger:hover { border-color: #999; }
+.ms-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ms-caret { color: #888; font-size: 10px; transition: transform 0.15s ease; flex: 0 0 auto; }
+.ms-dropdown.ms-open .ms-caret { transform: rotate(180deg); }
+.ms-panel {
+  display: none;
+  margin-top: 4px;
+  max-height: 232px;
+  overflow-y: auto;
+  border: 1px solid #e4e4e4;
+  border-radius: 6px;
+  padding: 4px 2px;
+}
+.ms-dropdown.ms-open .ms-panel { display: block; }
+
 /* Small hint under the States / Subregions group titles. */
 .control-hint {
   font-size: 10.5px;
