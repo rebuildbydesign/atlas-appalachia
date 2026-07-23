@@ -137,12 +137,32 @@
                     </div>
                 </div>
 
-                <!-- Map overlays (not lenses) -->
-                <div class="control-subgroup-title">Map</div>
-                <div class="control-options">
+                <!-- Subregion selector: show all, or solo one ARC subregion -->
+                <div class="control-subgroup-title">Subregions</div>
+                <div class="control-options" id="subregion-select">
                     <label class="control-option">
-                        <input type="checkbox" id="subregions-toggle" checked>
-                        <span>ARC subregions</span>
+                        <input type="radio" name="subregion" value="all" checked>
+                        <span>All subregions</span>
+                    </label>
+                    <label class="control-option">
+                        <input type="radio" name="subregion" value="Northern">
+                        <span><i class="sr-dot" style="background:#2166ac"></i>Northern</span>
+                    </label>
+                    <label class="control-option">
+                        <input type="radio" name="subregion" value="North Central">
+                        <span><i class="sr-dot" style="background:#762a83"></i>North Central</span>
+                    </label>
+                    <label class="control-option">
+                        <input type="radio" name="subregion" value="Central">
+                        <span><i class="sr-dot" style="background:#1b7837"></i>Central</span>
+                    </label>
+                    <label class="control-option">
+                        <input type="radio" name="subregion" value="South Central">
+                        <span><i class="sr-dot" style="background:#e08214"></i>South Central</span>
+                    </label>
+                    <label class="control-option">
+                        <input type="radio" name="subregion" value="Southern">
+                        <span><i class="sr-dot" style="background:#c51b8a"></i>Southern</span>
                     </label>
                 </div>
             </div>

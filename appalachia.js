@@ -26,6 +26,8 @@
   // 13 Appalachian state FIPS (for clipping the national SVI tract tiles).
   var STATE_FIPS = ['01', '13', '21', '24', '28', '36', '37', '39', '42', '45', '47', '51', '54'];
   var APP_GEOIDS = [];   // 423 county GEOIDs, loaded from data/appalachia_geoids.json
+  var SUB_GEOIDS = {};   // {subregion: [geoids]}, loaded from data/appalachia_subregion_geoids.json
+  var selectedSub = 'all';  // 'all' or one subregion name — drives which counties show
 
   // SVI resolution: county by default, census-tract on demand (scripts.js reads this).
   window.SVI_TRACT_DETAIL = false;
@@ -39,7 +41,11 @@
     'Southern', '#c51b8a',
     '#555555'];
 
-  function countyFilter() { return ['in', ['get', 'GEOID'], ['literal', APP_GEOIDS]]; }
+  // The GEOIDs currently shown: all 423, or just the selected subregion's.
+  function activeGeoids() {
+    return (selectedSub === 'all' || !SUB_GEOIDS[selectedSub]) ? APP_GEOIDS : SUB_GEOIDS[selectedSub];
+  }
+  function countyFilter() { return ['in', ['get', 'GEOID'], ['literal', activeGeoids()]]; }
 
   function applyFocus() {
     ['atlas-fema-layer', 'county-borders', 'county-labels', 'atlas-fema-dots-layer'].forEach(function (id) {
@@ -48,10 +54,12 @@
     // County names are noise at the region overview; only reveal them once the
     // user zooms into a state/area. State + subregion labels carry the wide view.
     if (map.getLayer('county-labels')) { try { map.setLayerZoomRange('county-labels', 7, 24); } catch (e) {} }
+    // SVI tracts: clip to the 13 states (all) or the selected subregion's counties.
+    var tractFilter = (selectedSub === 'all')
+      ? ['in', ['slice', ['get', 'GEOID'], 0, 2], ['literal', STATE_FIPS]]
+      : ['in', ['slice', ['get', 'GEOID'], 0, 5], ['literal', activeGeoids()]];
     ['svi-tracts-layer', 'svi-tracts-outline'].forEach(function (id) {
-      if (map.getLayer(id)) {
-        try { map.setFilter(id, ['in', ['slice', ['get', 'GEOID'], 0, 2], ['literal', STATE_FIPS]]); } catch (e) {}
-      }
+      if (map.getLayer(id)) { try { map.setFilter(id, tractFilter); } catch (e) {} }
     });
   }
 
@@ -63,12 +71,15 @@
   function addMask() {
     if (map.getSource('app-mask')) return;
     map.addSource('app-mask', { type: 'geojson', data: 'data/appalachia_mask.geojson' });
-    // Sits just under the choropleth (above the basemap fills) so the region
-    // reads as the subject and the surrounding country fades back.
+    // Inserted BELOW the base 'water' fill so surrounding LAND is muted but the
+    // water keeps its blue (the base style's water is #d9eff2). Falls back to
+    // just under the choropleth if 'water' isn't found.
+    var before = map.getLayer('water') ? 'water'
+      : (map.getLayer('atlas-fema-layer') ? 'atlas-fema-layer' : undefined);
     map.addLayer({
       id: 'app-mask-fill', type: 'fill', source: 'app-mask',
-      paint: { 'fill-color': '#eeece7', 'fill-opacity': 0.74 }
-    }, map.getLayer('atlas-fema-layer') ? 'atlas-fema-layer' : undefined);
+      paint: { 'fill-color': '#eeece7', 'fill-opacity': 0.72 }
+    }, before);
     // Basemap state labels stay ON (they render above the mask) so states in
     // AND around the region are labeled for navigation.
   }
@@ -113,9 +124,7 @@
 
   // ----- The 5 ARC subregions (color-coded outlines + labels) ---------------
   // Each subregion's boundary + label is drawn in its own color for legibility.
-  // Toggled as a group by the "ARC subregions" checkbox.
-  var SUBREGION_LAYERS = ['app-subregion-casing', 'app-subregion-line', 'app-subregion-labels-layer'];
-
+  // Selectable via the "Subregions" radio group (all / solo one).
   function addSubregions() {
     if (!map.getSource('app-subregions')) {
       map.addSource('app-subregions', { type: 'geojson', data: 'data/appalachia_subregions.geojson' });
@@ -154,27 +163,58 @@
     }
   }
 
-  function setSubregionsVisible(on) {
-    SUBREGION_LAYERS.forEach(function (id) {
-      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
-    });
+  // Grey wash over the NON-selected subregions when one subregion is soloed,
+  // so only the chosen subregion reads in color. Hidden when showing all.
+  function addDim() {
+    if (map.getLayer('app-subregion-dim')) return;
+    if (!map.getSource('app-subregions')) {
+      map.addSource('app-subregions', { type: 'geojson', data: 'data/appalachia_subregions.geojson' });
+    }
+    map.addLayer({
+      id: 'app-subregion-dim', type: 'fill', source: 'app-subregions',
+      layout: { visibility: 'none' },
+      paint: { 'fill-color': '#eeece7', 'fill-opacity': 0.72 }
+    }, map.getLayer('app-subregion-casing') ? 'app-subregion-casing' : undefined);
   }
 
-  // ----- Control-panel wiring (subregion toggle + SVI county/tract toggle) ---
-  function wireControls() {
-    var subToggle = document.getElementById('subregions-toggle');
-    if (subToggle && !subToggle._wired) {
-      subToggle._wired = true;
-      setSubregionsVisible(subToggle.checked);
-      subToggle.addEventListener('change', function (e) { setSubregionsVisible(e.target.checked); });
+  // Show all subregions, or solo one — filters the choropleth, the subregion
+  // outline/label, dims the rest, and swaps the region outline for the soloed one.
+  function applySubregionSelection(sel) {
+    selectedSub = sel;
+    var isAll = (sel === 'all');
+    applyFocus();  // refilter choropleth / borders / county labels / tracts
+
+    var srFilter = isAll ? null : ['==', ['get', 'subregion'], sel];
+    ['app-subregion-casing', 'app-subregion-line', 'app-subregion-labels-layer'].forEach(function (id) {
+      if (map.getLayer(id)) { try { map.setFilter(id, srFilter); } catch (e) {} }
+    });
+    if (map.getLayer('app-subregion-dim')) {
+      map.setLayoutProperty('app-subregion-dim', 'visibility', isAll ? 'none' : 'visible');
+      try { map.setFilter('app-subregion-dim', isAll ? null : ['!=', ['get', 'subregion'], sel]); } catch (e) {}
     }
+    // The overall region outline only makes sense when everything is shown.
+    ['appalachia-boundary-casing', 'appalachia-boundary-line'].forEach(function (id) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', isAll ? 'visible' : 'none');
+    });
+    restack();
+  }
+
+  // ----- Control-panel wiring (subregion selector + SVI county/tract toggle) -
+  function wireControls() {
+    document.querySelectorAll('input[name="subregion"]').forEach(function (r) {
+      if (r._wired) return;
+      r._wired = true;
+      r.addEventListener('change', function (e) {
+        if (e.target.checked) applySubregionSelection(e.target.value);
+      });
+    });
     var sviToggle = document.getElementById('svi-tract-toggle');
     if (sviToggle && !sviToggle._wired) {
       sviToggle._wired = true;
       sviToggle.addEventListener('change', function (e) {
         window.SVI_TRACT_DETAIL = e.target.checked;
         if (window.applyAtlasStyling) window.applyAtlasStyling();
-        applyFocus();  // re-apply the 13-state tract filter after the restyle
+        applyFocus();  // re-apply the tract filter after the restyle
       });
     }
   }
@@ -215,16 +255,20 @@
 
   // ----- boot ---------------------------------------------------------------
   function boot() {
-    fetch('data/appalachia_geoids.json')
-      .then(function (r) { return r.json(); })
-      .then(function (ids) {
-        APP_GEOIDS = ids;
+    Promise.all([
+      fetch('data/appalachia_geoids.json').then(function (r) { return r.json(); }),
+      fetch('data/appalachia_subregion_geoids.json').then(function (r) { return r.json(); })
+    ])
+      .then(function (res) {
+        APP_GEOIDS = res[0];
+        SUB_GEOIDS = res[1];
         applyFocus();
         frame();
         addMask();
         addStateLines();
         addRegionOutline();
         addSubregions();
+        addDim();
         wireControls();
         paintChoropleth();
         restack();

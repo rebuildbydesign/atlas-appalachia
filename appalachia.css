@@ -3,6 +3,26 @@
    Snapshot panel + toggle button for the 3-state slideshow build.
    ========================================================================= */
 
+/* Solid, legible legend panel (base style makes it 80% transparent). */
+#legend {
+  background: #ffffff !important;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid #e4e4e4;
+  border-radius: 8px !important;
+  padding: 12px 14px !important;
+}
+
+/* Color dot for the subregion selector options. */
+.sr-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: middle;
+  flex: 0 0 auto;
+}
+
 /* Legend keys for the geography lines (match the map line styles). */
 .legend-region-line,
 .legend-subregion-line,
